@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>乘风 · 成团之日</title>
+    <style>
+        /* ===== 全局风格（深色暖调复古梦幻） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #1a1410;
+            color: #f0e6d8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 560px;
+            min-height: 700px;
+            background: #2d231e;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            padding: 24px 20px 28px;
+            border: 1px solid #4d3a30;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #5f4336;
+            margin-bottom: 16px;
+        }
+
+        .page-header .id {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f5dcc8;
+            letter-spacing: 2px;
+        }
+
+        .page-header .badge {
+            font-size: 14px;
+            font-weight: 400;
+            background: #4d342b;
+            padding: 2px 16px;
+            border-radius: 40px;
+            color: #c9b09d;
+        }
+
+        /* ===== 故事文本容器 ===== */
+        .story-block {
+            background: rgba(40, 28, 22, 0.7);
+            border-radius: 18px;
+            padding: 18px 20px;
+            border-left: 4px solid #b8875e;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 0 rgba(255, 215, 170, 0.04);
+            margin-bottom: 20px;
+            flex: 1;
+            min-height: 300px;
+        }
+
+        /* 每行文本初始隐藏，逐行显示 */
+        .line {
+            font-size: 16px;
+            line-height: 2;
+            color: #e8d9cd;
+            margin-bottom: 6px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .line.empty {
+            height: 0.8em;
+            margin-bottom: 0;
+        }
+
+        .line .highlight {
+            color: #fad5b0;
+            font-weight: 600;
+        }
+
+        /* ===== 突出效果：关键台词 ===== */
+        .line.quote-highlight {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fad5b0;
+            text-shadow: 0 0 20px rgba(250, 213, 176, 0.6);
+            letter-spacing: 2px;
+            font-style: normal;
+            line-height: 1.8;
+            animation: glowPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(250, 213, 176, 0.4); }
+            50% { text-shadow: 0 0 30px rgba(250, 213, 176, 0.9), 0 0 60px rgba(250, 213, 176, 0.3); }
+        }
+
+        /* ===== 按钮 ===== */
+        .btn-action {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            background: #7a5a47;
+            border: none;
+            border-radius: 40px;
+            color: #f5ede5;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 6px 0 #4d342b, 0 8px 24px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            letter-spacing: 3px;
+            margin-top: 6px;
+            user-select: none;
+            touch-action: manipulation;
+            text-decoration: none;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn-action.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-action:hover.enabled {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #4d342b, 0 12px 32px rgba(0, 0, 0, 0.5);
+            background: #8d6a55;
+        }
+
+        .btn-action:active.enabled {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #4d342b;
+        }
+
+        .btn-action .arrow {
+            display: inline-block;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-action:hover.enabled .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ===== 返回按钮 ===== */
+        .btn-back {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #4d342b;
+            border: none;
+            border-radius: 40px;
+            color: #c9b09d;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 0 #2f221b;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 8px;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn-back.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-back.enabled:hover {
+            background: #5f483c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #2f221b;
+        }
+
+        .btn-back.enabled:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #2f221b;
+        }
+
+        /* ===== 页脚 ===== */
+        .footer {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #7a6558;
+            border-top: 1px solid #3d2c23;
+        }
+
+        .footer .page-num {
+            background: #2d1f1a;
+            padding: 2px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #b0907a;
+        }
+
+        .footer .brand {
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        /* ===== Toast（提示） ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d1f1a;
+            padding: 12px 28px;
+            border-radius: 40px;
+            border: 1px solid #b8875e;
+            color: #f5ede5;
+            font-size: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                padding: 18px 14px 22px;
+                min-height: 600px;
+                border-radius: 24px;
+            }
+            .page-header .id {
+                font-size: 16px;
+            }
+            .line {
+                font-size: 15px;
+                line-height: 1.9;
+            }
+            .line.quote-highlight {
+                font-size: 20px;
+            }
+            .btn-action {
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .line {
+                font-size: 14px;
+            }
+            .line.quote-highlight {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <div class="page" id="page-ending">
+
+        <!-- 标题 -->
+        <div class="page-header">
+            <span class="id">🎉 成团之日</span>
+            <span class="badge">7 / 7</span>
+        </div>
+
+        <!-- 故事内容（每行一个 .line） -->
+        <div class="story-block" id="storyBlock">
+            <!-- 1. 副标题 -->
+            <div class="line" style="text-align:center;font-size:14px;color:#b0907a;font-style:italic;line-height:1.8;">—— 梦醒时分 ——</div>
+            <!-- 2 -->
+            <div class="line">随着宝箱的开启，一阵敲锣打鼓的激昂音乐响起……</div>
+            <!-- 3 -->
+            <div class="line">你迷迷糊糊睁开眼，发现自己正躺在床上，</div>
+            <!-- 4 -->
+            <div class="line">手机的闹钟在一旁响个不停。</div>
+            <!-- 5 -->
+            <div class="line">你抬手关上闹钟，看了一眼手机上显示的时间——</div>
+            <!-- 6 -->
+            <div class="line">原来今天是 <span class="highlight">成团之日</span>。</div>
+            <!-- 7 -->
+            <div class="line">昨晚梦中和动森 NPC 的互动历历在目，</div>
+            <!-- 8 -->
+            <div class="line">你笑了笑，果然是好久没玩游戏机了。</div>
+            <!-- 9 -->
+            <div class="line">抬手想揉一揉惺忪的双眼，忽然你看到胳膊上不知何时抄上的一行小字……</div>
+            <!-- 10. 空行 -->
+            <div class="line empty"></div>
+            <!-- 11. "这是……" -->
+            <div class="line" style="text-align:center;font-size:22px;font-weight:700;color:#fad5b0;letter-spacing:4px;font-family:'Courier New',monospace;line-height:1.6;">这是……</div>
+            <!-- 12. ★ 突出效果的目标台词 ★ -->
+            <div class="line quote-highlight">“乘风结束之后，记得去岛上赴约吧。”</div>
+            <!-- 13. 🏝️ -->
+            <div class="line" style="text-align:center;font-size:48px;line-height:1.4;margin:4px 0;">🏝️</div>
+            <!-- 14. 全剧终 -->
+            <div class="line" style="text-align:center;font-size:13px;color:#7a6558;line-height:1.6;">—— 全剧终 ——</div>
+        </div>
+
+        <!-- 制作名单按钮（主操作） -->
+        <a href="refer.html" class="btn-action" id="btnCredits">
+            📜 制作名单
+            <span class="arrow">➜</span>
+        </a>
+
+        <!-- 返回序章 -->
+        <div style="margin-top: 12px; text-align: center;">
+            <a href="index.html" class="btn-back" id="btnBack">⬅ 返回序章</a>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <span class="page-num">📍 成团之日 · 7/7</span>
+            <span class="brand">✦ 乘风 ✦</span>
+        </div>
+
+    </div>
+
+    <script>
+        // ================================================================
+        //  逐行显示文本（间隔 800ms）
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const lines = document.querySelectorAll('.line');
+            const btnCredits = document.getElementById('btnCredits');
+            const btnBack = document.getElementById('btnBack');
+
+            let index = 0;
+            const intervalTime = 800;
+
+            // 禁用按钮直到全部显示
+            btnCredits.classList.remove('enabled');
+            btnBack.classList.remove('enabled');
+
+            function showNextLine() {
+                if (index < lines.length) {
+                    lines[index].classList.add('visible');
+                    index++;
+                    setTimeout(showNextLine, intervalTime);
+                } else {
+                    // 全部显示后启用按钮
+                    btnCredits.classList.add('enabled');
+                    btnBack.classList.add('enabled');
+                    showToast('🎉 恭喜通关！感谢你的游玩');
+                }
+            }
+
+            // 启动逐行显示
+            setTimeout(showNextLine, 300);
+
+            // Toast 函数
+            function showToast(msg, duration = 2000) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(window.toastTimer);
+                window.toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>乘风 · 走廊</title>
+    <style>
+        /* ===== 全局风格（深色暖调复古梦幻） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #1a1410;
+            color: #f0e6d8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 560px;
+            min-height: 700px;
+            background: #2d231e;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            padding: 24px 20px 28px;
+            border: 1px solid #4d3a30;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #5f4336;
+            margin-bottom: 16px;
+        }
+
+        .page-header .id {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f5dcc8;
+            letter-spacing: 2px;
+        }
+
+        .page-header .badge {
+            font-size: 14px;
+            font-weight: 400;
+            background: #4d342b;
+            padding: 2px 16px;
+            border-radius: 40px;
+            color: #c9b09d;
+        }
+
+        /* ===== 故事文本容器 ===== */
+        .story-block {
+            background: rgba(40, 28, 22, 0.7);
+            border-radius: 18px;
+            padding: 18px 20px;
+            border-left: 4px solid #b8875e;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 0 rgba(255, 215, 170, 0.04);
+            margin-bottom: 20px;
+            flex: 1;
+            min-height: 300px;
+        }
+
+        /* 每行文本初始隐藏，逐行显示 */
+        .line {
+            font-size: 16px;
+            line-height: 2;
+            color: #e8d9cd;
+            margin-bottom: 6px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .line.empty {
+            height: 0.8em;
+            margin-bottom: 0;
+        }
+
+        .line .highlight {
+            color: #fad5b0;
+            font-weight: 600;
+        }
+
+        /* ===== 按钮 ===== */
+        .btn-action {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            background: #7a5a47;
+            border: none;
+            border-radius: 40px;
+            color: #f5ede5;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 6px 0 #4d342b, 0 8px 24px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            letter-spacing: 3px;
+            margin-top: 6px;
+            user-select: none;
+            touch-action: manipulation;
+            text-decoration: none;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn-action.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-action:hover.enabled {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #4d342b, 0 12px 32px rgba(0, 0, 0, 0.5);
+            background: #8d6a55;
+        }
+
+        .btn-action:active.enabled {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #4d342b;
+        }
+
+        .btn-action .arrow {
+            display: inline-block;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-action:hover.enabled .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ===== 返回按钮 ===== */
+        .btn-back {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #4d342b;
+            border: none;
+            border-radius: 40px;
+            color: #c9b09d;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 0 #2f221b;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 8px;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn-back.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-back.enabled:hover {
+            background: #5f483c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #2f221b;
+        }
+
+        .btn-back.enabled:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #2f221b;
+        }
+
+        /* ===== 页脚 ===== */
+        .footer {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #7a6558;
+            border-top: 1px solid #3d2c23;
+        }
+
+        .footer .page-num {
+            background: #2d1f1a;
+            padding: 2px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #b0907a;
+        }
+
+        .footer .brand {
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        /* ===== Toast（提示） ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d1f1a;
+            padding: 12px 28px;
+            border-radius: 40px;
+            border: 1px solid #b8875e;
+            color: #f5ede5;
+            font-size: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                padding: 18px 14px 22px;
+                min-height: 600px;
+                border-radius: 24px;
+            }
+            .page-header .id {
+                font-size: 16px;
+            }
+            .line {
+                font-size: 15px;
+                line-height: 1.9;
+            }
+            .btn-action {
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .line {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <div class="page" id="page-corridor">
+
+        <!-- 标题 -->
+        <div class="page-header">
+            <span class="id">🚪 走廊</span>
+            <span class="badge">3 / 7</span>
+        </div>
+
+        <!-- 故事内容（每行一个 .line） -->
+        <div class="story-block" id="storyBlock">
+            <div class="line">《答案》，我们有选这首歌吗？</div>
+            <div class="line">话说回来我的队友都去哪里了？老师也不在，没有人叫醒睡着的我，全都自己下班了吗？</div>
+            <div class="line">现在是几点？手机...手机找不到了，训练室上的钟表也被撤走了，这节目是趁我睡觉的时候录完了吗？</div>
+            <div class="line">不管了，先出门找一下助理，我也下班好了。</div>
+            <div class="line empty"></div>
+            <div class="line">你推开门训练室的门来到了走廊...</div>
+            <div class="line empty"></div>
+            <div class="line">“有人吗？”，回应你的是空荡荡的回声...</div>
+            <div class="line empty"></div>
+            <div class="line">你轮流推开各个训练室的大门，全部空无一人，直到你来到了一号训练室</div>
+        </div>
+
+        <!-- 进入一号训练室按钮 -->
+        <a href="page4.html" class="btn-action" id="btnEnter">
+            推门入内
+            <span class="arrow">➜</span>
+        </a>
+
+        <!-- 返回首页 -->
+        <div style="margin-top: 12px; text-align: center;">
+            <a href="index.html" class="btn-back" id="btnBack">⬅ 不然还是回去睡会儿吧</a>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <span class="page-num">📍 走廊 · 3/7</span>
+            <span class="brand">✦ 乘风 ✦</span>
+        </div>
+
+    </div>
+
+    <script>
+        // ================================================================
+        //  逐行显示文本（间隔 800ms）
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const lines = document.querySelectorAll('.line');
+            const btnEnter = document.getElementById('btnEnter');
+            const btnBack = document.getElementById('btnBack');
+
+            let index = 0;
+            const intervalTime = 800; // 调整为 800ms，更舒缓
+
+            // 禁用按钮直到全部显示
+            btnEnter.classList.remove('enabled');
+            btnBack.classList.remove('enabled');
+
+            function showNextLine() {
+                if (index < lines.length) {
+                    lines[index].classList.add('visible');
+                    index++;
+                    setTimeout(showNextLine, intervalTime);
+                } else {
+                    // 全部显示后启用按钮
+                    btnEnter.classList.add('enabled');
+                    btnBack.classList.add('enabled');
+                    showToast('📖 故事已展开，继续前进吧');
+                }
+            }
+
+            // 启动逐行显示
+            setTimeout(showNextLine, 300);
+
+            // Toast 函数
+            function showToast(msg, duration = 2000) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(window.toastTimer);
+                window.toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+        });
+    </script>
+
+</body>
+</html>

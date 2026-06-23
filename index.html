@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>乘风 · 序章</title>
+    <style>
+        /* ===== 全局风格（深色暖调复古梦幻） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #1a1410;
+            color: #f0e6d8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 560px;
+            min-height: 700px;
+            background: #2d231e;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            padding: 28px 24px 32px;
+            border: 1px solid #4d3a30;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-icon {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 6px;
+            letter-spacing: 8px;
+            filter: drop-shadow(0 4px 20px rgba(184, 135, 94, 0.15));
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #f5dcc8;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #5f4336;
+            margin-bottom: 16px;
+        }
+
+        .title .sub {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: #b0907a;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        .card {
+            background: rgba(40, 28, 22, 0.7);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            border-left: 4px solid #b8875e;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 0 rgba(255, 215, 170, 0.04);
+        }
+
+        .card .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #b8875e;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .card p,
+        .card li {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #e8d9cd;
+        }
+
+        .card ul {
+            list-style: none;
+            padding-left: 4px;
+        }
+
+        .card ul li {
+            padding-left: 22px;
+            position: relative;
+        }
+
+        .card ul li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #b8875e;
+            font-size: 14px;
+        }
+
+        .highlight {
+            color: #fad5b0;
+            font-weight: 600;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #5f4336, transparent);
+            margin: 6px 0 14px;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: #dccbc0;
+            line-height: 1.6;
+        }
+
+        .step .num {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            background: #4d342b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fad5b0;
+            margin-top: 1px;
+        }
+
+        .note {
+            background: rgba(60, 40, 30, 0.5);
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-size: 13px;
+            color: #b0907a;
+            border: 1px solid #4d342b;
+            margin-top: 2px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .note .icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .btn-start {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            background: #7a5a47;
+            border: none;
+            border-radius: 40px;
+            color: #f5ede5;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 6px 0 #4d342b, 0 8px 24px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            letter-spacing: 3px;
+            margin-top: 8px;
+            user-select: none;
+            touch-action: manipulation;
+            text-decoration: none;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #4d342b, 0 12px 32px rgba(0, 0, 0, 0.5);
+            background: #8d6a55;
+        }
+
+        .btn-start:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #4d342b;
+        }
+
+        .btn-start .arrow {
+            display: inline-block;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-start:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #7a6558;
+            border-top: 1px solid #3d2c23;
+        }
+
+        .footer .page-num {
+            background: #2d1f1a;
+            padding: 2px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #b0907a;
+        }
+
+        .footer .brand {
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                padding: 20px 16px 24px;
+                min-height: 620px;
+                border-radius: 24px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .card p,
+            .card li {
+                font-size: 14px;
+            }
+            .step {
+                font-size: 13px;
+            }
+            .btn-start {
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .page {
+                padding: 16px 12px 20px;
+                min-height: 560px;
+            }
+            .title {
+                font-size: 19px;
+                letter-spacing: 2px;
+            }
+            .card {
+                padding: 12px 14px;
+            }
+            .card p,
+            .card li {
+                font-size: 13px;
+                line-height: 1.7;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page" id="page-intro">
+
+        <div class="header-icon">🎤 ✦ 🌙</div>
+
+        <div class="title">
+            乘风 · 序章
+            <span class="sub">— 早知道是这样像梦一场 —</span>
+        </div>
+
+        <!-- 游戏背景 -->
+        <div class="card">
+            <div class="label">📖 游戏背景</div>
+            <p>
+                你是 <span class="highlight">李小冉</span>，你在乘风练习室里醒来，
+                面对空荡荡的练习室和 <span class="highlight">“没有人”</span> 的世界，
+                你能否破解其中的秘密，找到这一切的答案？
+            </p>
+        </div>
+
+        <!-- 游戏目标 -->
+        <div class="card">
+            <div class="label">🎯 游戏目标</div>
+            <ul>
+                <li>通过浏览不同场景网页，探索自己所在的世界</li>
+                <li>找到回到现实世界的 <span class="highlight">出路</span></li>
+            </ul>
+        </div>
+
+        <!-- 游戏玩法 -->
+        <div class="card">
+            <div class="label">🎮 游戏玩法</div>
+            <div class="steps">
+                <div class="step">
+                    <span class="num">1</span>
+                    <span>在各个页面中寻找 <span class="highlight">关键词</span>，并在答题框内输入（每次只能输入 <strong>1</strong> 个关键词），或点击相应按钮推进剧情</span>
+                </div>
+                <div class="step">
+                    <span class="num">2</span>
+                    <span><span class="highlight">推进方法：</span>阅读现有页面 → 找出正确的关键词并输入答题框 / 点击按钮 → 发现新页面 → 重复，直到实现游戏目的</span>
+                </div>
+                <div class="step">
+                    <span class="num">3</span>
+                    <span>每个网页的页脚处都标有 <span class="highlight">对应数字</span> 和 <span class="highlight">总页面数</span>，数字越大，就意味着你越接近目标。</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注意 -->
+        <div class="note">
+            <span class="icon">📱</span>
+            <span><strong>注意：</strong>推荐使用电脑或手机游玩。使用平板电脑可能会出现显示错误。</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 跳转到第二页（page2.html） -->
+        <a href="page2.html" class="btn-start">
+            踏入练习室
+            <span class="arrow">➜</span>
+        </a>
+
+        <div class="footer">
+            <span class="page-num">📍 序章 · 1 / 7</span>
+            <span class="brand">✦ 乘风 ✦</span>
+        </div>
+
+    </div>
+
+</body>
+</html>

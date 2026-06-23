@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>制作名单</title>
+    <style>
+        /* ===== 全局风格（深色暖调复古） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #1a1410;
+            color: #f0e6d8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 560px;
+            min-height: 700px;
+            background: #2d231e;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            padding: 28px 24px 32px;
+            border: 1px solid #4d3a30;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== 标题 ===== */
+        .header-icon {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 6px;
+            letter-spacing: 8px;
+            filter: drop-shadow(0 4px 20px rgba(184, 135, 94, 0.15));
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.4s forwards;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #f5dcc8;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #5f4336;
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeIn 1s ease 0.4s forwards;
+        }
+
+        .title .sub {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: #b0907a;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ===== 卡片通用 ===== */
+        .card {
+            background: rgba(40, 28, 22, 0.7);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(4px);
+            border-left: 4px solid #b8875e;
+        }
+
+        .card .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #b8875e;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        /* ===== 开发者卡片：滑入 + 持续发光（无闪烁） ===== */
+        #devCard {
+            border-left-color: #b8875e;
+            opacity: 0;
+            transform: translateY(60px);
+            box-shadow: 0 0 25px rgba(184, 135, 94, 0.4),
+                0 0 50px rgba(184, 135, 94, 0.2),
+                inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            animation: devSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+        }
+
+        @keyframes devSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 留言卡片：滑入 + 持续发光（无闪烁） ===== */
+        #msgCard {
+            border-left-color: #8a6a55;
+            opacity: 0;
+            transform: translateY(60px);
+            box-shadow: 0 0 25px rgba(184, 135, 94, 0.4),
+                0 0 50px rgba(184, 135, 94, 0.2),
+                inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            animation: msgSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+        }
+
+        @keyframes msgSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 留言板内容（无自动滚动，保留手动滚动） ===== */
+        .msg-board {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-top: 2px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-board::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .msg-board::-webkit-scrollbar-track {
+            background: rgba(40, 28, 22, 0.5);
+            border-radius: 8px;
+        }
+
+        .msg-board::-webkit-scrollbar-thumb {
+            background: #b8875e;
+            border-radius: 8px;
+        }
+
+        .msg-item {
+            padding: 10px 8px 10px 12px;
+            border-bottom: 1px solid rgba(255, 215, 170, 0.06);
+            border-radius: 4px;
+        }
+
+        .msg-item:last-child {
+            border-bottom: none;
+        }
+
+        .msg-id {
+            color: #b8875e;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .msg-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #e8d9cd;
+            margin-top: 2px;
+            padding-left: 4px;
+        }
+
+        .msg-empty {
+            text-align: center;
+            color: #7a6558;
+            padding: 24px 0;
+            font-size: 14px;
+        }
+
+        /* ===== 开发者内部样式 ===== */
+        .credit-name {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-top: 4px;
+        }
+
+        .credit-name .name {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(184, 135, 94, 0.12);
+            border: 1px solid rgba(184, 135, 94, 0.25);
+            border-radius: 40px;
+            padding: 4px 18px 4px 14px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fad5b0;
+            letter-spacing: 1px;
+        }
+
+        .credit-name .name .emoji {
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .credit-name .and {
+            color: #7a6558;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dev-footer-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #b0907a;
+            border-top: 1px solid rgba(255, 215, 170, 0.06);
+            padding-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* ===== 底部按钮 ===== */
+        .btn-start {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            background: #7a5a47;
+            border: none;
+            border-radius: 40px;
+            color: #f5ede5;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 4px 0 #4d342b, 0 6px 18px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            letter-spacing: 3px;
+            margin-top: 8px;
+            user-select: none;
+            text-decoration: none;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.8s forwards;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #4d342b, 0 10px 28px rgba(0, 0, 0, 0.5);
+            background: #8d6a55;
+        }
+
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #4d342b;
+        }
+
+        .btn-start .arrow {
+            display: inline-block;
+            margin-left: 8px;
+            transition: transform 0.2s;
+        }
+
+        .btn-start:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid #3d2c23;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 2s forwards;
+        }
+
+        .footer .disclaimer {
+            font-size: 11px;
+            color: #7a6558;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .footer .brand {
+            text-align: center;
+            font-size: 13px;
+            color: #7a6558;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 480px) {
+            .page {
+                padding: 20px 16px 24px;
+                min-height: 620px;
+                border-radius: 24px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .msg-board {
+                max-height: 200px;
+            }
+            .credit-name .name {
+                font-size: 13px;
+                padding: 3px 14px 3px 10px;
+            }
+            .btn-start {
+                font-size: 14px;
+                padding: 8px 14px;
+                box-shadow: 0 3px 0 #4d342b, 0 6px 18px rgba(0, 0, 0, 0.4);
+            }
+            .btn-start:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 0 #4d342b, 0 8px 20px rgba(0, 0, 0, 0.5);
+            }
+            .btn-start:active {
+                transform: translateY(3px);
+                box-shadow: 0 1px 0 #4d342b;
+            }
+            /* 响应式下发光强度适当降低 */
+            #devCard,
+            #msgCard {
+                box-shadow: 0 0 18px rgba(184, 135, 94, 0.35),
+                    0 0 35px rgba(184, 135, 94, 0.15),
+                    inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            }
+        }
+
+        @media (max-width: 380px) {
+            .page {
+                padding: 16px 12px 20px;
+                min-height: 560px;
+            }
+            .title {
+                font-size: 19px;
+            }
+            .card {
+                padding: 12px 14px;
+            }
+            .msg-board {
+                max-height: 160px;
+            }
+            .credit-name .name {
+                font-size: 12px;
+                padding: 2px 10px 2px 8px;
+            }
+            .btn-start {
+                font-size: 13px;
+                padding: 6px 12px;
+                box-shadow: 0 2px 0 #4d342b, 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+            .btn-start:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 3px 0 #4d342b, 0 6px 16px rgba(0, 0, 0, 0.5);
+            }
+            .btn-start:active {
+                transform: translateY(2px);
+                box-shadow: 0 0px 0 #4d342b;
+            }
+            #devCard,
+            #msgCard {
+                box-shadow: 0 0 12px rgba(184, 135, 94, 0.3),
+                    0 0 25px rgba(184, 135, 94, 0.1),
+                    inset 0 1px 0 rgba(255, 215, 170, 0.08);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page" id="pageContainer">
+        <!-- ===== 标题 ===== -->
+        <div class="header-icon">💫 ✦ 📜</div>
+        <div class="title">
+            制作名单
+            <span class="sub">— 星光不负赶路人 —</span>
+        </div>
+
+        <!-- ===== 开发者卡片（滑入 + 持续发光） ===== -->
+        <div class="card" id="devCard">
+            <div class="label">💻 开发者</div>
+            <div class="credit-name">
+                <span class="name">
+                    <span class="emoji">🐬</span> 藿香正气不含糖水
+                </span>
+                <span class="and">✦</span>
+                <span class="name">
+                    <span class="emoji">🌟</span> 北落Ali
+                </span>
+            </div>
+            <div class="dev-footer-text">
+                也致敬每一位在乘风世界里留下声音的你。
+            </div>
+        </div>
+
+        <!-- ===== 留言卡片（滑入 + 持续发光，无自动滚动） ===== -->
+        <div class="card" id="msgCard">
+            <div class="label">💬 粉丝留言 (词云生成数据来源，随机顺序展示)</div>
+            <div class="msg-board" id="msgBoard">
+                <!-- 由 JavaScript 动态生成 -->
+            </div>
+        </div>
+
+        <!-- ===== 底部 ===== -->
+        <a href="index.html" class="btn-start">
+            返回序章
+            <span class="arrow">⟵</span>
+        </a>
+
+        <div class="footer">
+            <div class="disclaimer">
+                本网站的内容为虚构游戏作品，与任何真实的人物、团体或事件无关。
+            </div>
+            <div class="brand">✦ 乘风 ✦</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== 留言数据 =====
+        const messages = [
+  { id: '扇贝', text: '你是最优秀的自己，无需和别人比较' },
+  { id: '藿香正气不含糖水', text: '小冉姐加油，你唱歌特别好听，你是最棒的' },
+  { id: '北落Ali', text: '我们伴你飞，多久都不会累' },
+  { id: 'Time', text: '继续大声唱，明媚自由' },
+  { id: '_南星北月_', text: '冉冉你最优秀，伴你飞永远都不会累' },
+  { id: '播放塔克么', text: '姐姐唱歌很好听是大vocal要开心快乐' },
+  { id: '小狗放屁大会', text: '这个夏天 感谢遇见李小冉！' },
+  { id: '跳跳桃', text: '乘风而上！' },
+  { id: '大侠小鸣xm', text: '李小冉有棱有角很漂亮！会一直陪着你…' },
+  { id: 'TY-Eleutheromania-', text: '明媚又真诚的冉，愿你依旧内心温柔灵魂自由' },
+  { id: '玫瑰奶芙', text: '李小冉大声唱 我们一直在' },
+  { id: '面包超人_t', text: '姐姐无论做什么我都会在支持你' },
+  { id: 'Ying-1127', text: '今年最幸福的就是喜欢上了小冉！永远爱你！' },
+  { id: '最上凌晨', text: '冉冉很优秀，希望能常唱歌给我们听' },
+  { id: '小小', text: '你超级棒，你的每一个舞台我都非常喜欢' },
+  { id: '叽叽哇哇', text: '我们冉冉特别棒！麻麻爱你！大声唱！' },
+  { id: '瑜_eyesanaa', text: '希望姐姐一直幸福快乐自由，多拍戏！' },
+  { id: '烤不饺小面包', text: '有棱有角最漂亮 常见面做自己永远的大女主' },
+  { id: '允许独自碎碎念', text: '冉冉你是最优秀的，值得所有的爱和美好。' },
+  { id: '_没没没没', text: '姐姐 愿你永远明媚 永远做自己 我爱你' },
+  { id: '芒果恶魔降临地球', text: '李冉乃全宇宙最漂亮最萌之猪！' },
+  { id: '微微吃甜不吃糖', text: '三个月的乘风像梦一场，我会等演员李小冉' },
+  { id: '捏捏肉包lian', text: '一路乘风前行，未来星光璀璨，我们一直都在' },
+  { id: '清蒸鱼的求知欲', text: '熬过深谷等待展翅的绽放 李小冉永远明媚' },
+  { id: '每天都话很多多多多多', text: '冉冉 天天开心，健康快乐永远幸福' },
+  { id: '别管我rela', text: '乘风落幕，爱你不止，愿你永远自由永远热烈' },
+  { id: 'lrmalee', text: '姐姐  乘风的旅行结束了 而我们永不结束' },
+  { id: '当红小花绿豆豆', text: '山野万里，余生千欢' },
+  { id: '季落snow', text: '冉冉 愿你开心自由 当精彩的独立女性！' },
+  { id: '寻冉捕快333', text: '很幸运了解到如此美丽有趣，真诚可爱的你❤' },
+  { id: '假的菜菜', text: '冉冉你要自信，不要信pua' },
+  { id: '鸡蛋饼努力中', text: '李小冉我确定你就是我的天使女孩，永远爱你' },
+  { id: 'First-Teddy', text: '感谢命运让我遇见了你，让我可以与你同行' },
+  { id: '阿宁宁宁宁子', text: '谢谢你来乘风，让我认识了真诚美好的李小冉' },
+  { id: '摸鱼摆烂炸翻全世界', text: '喜欢上你很幸福，以后的路一起走下去吧' },
+  { id: '幸福就在下一刻ll', text: '只愿你往后每一件想做的事都能美梦成真' },
+  { id: '淮雪漫涵', text: '乘风落幕，愿李小冉永远做自己的大女主' },
+  { id: '甜策', text: '李小冉最优秀！有棱有角更漂亮！' },
+  { id: '万千-小刺猬', text: '姐姐你是最棒的！！！！！！！！' },
+  { id: 'Faye拾柒', text: '小冉姐姐你值得拥有这世上所有美好的东西' },
+  { id: '与君南山忆', text: '希望姐姐可以一直开心自信，做你永远的观众' },
+  { id: '我想明天见到妳', text: '谢谢你出现在我的生命里，你是最棒的我爱你' },
+  { id: '天下掉蛋挞', text: '现在的你很不自信 希望你找回最初的勇敢' },
+  { id: 'Feiiiioa', text: '属于冉冉的夏天刚刚开始，以后我们角色见！' },
+  { id: 'lemon tree', text: '乘风之旅，感谢你留下《梦一场》证明你自己' },
+  { id: 'Fehling_', text: '永远被你美好透明的心打动' },
+  { id: 'yxin_丫', text: '做你想做，想你所想，永远明媚，熠熠生辉' },
+  { id: 'Beginner楠儿', text: '爱你的人真的很多很多，你值得所有的爱❤️' },
+  { id: 'lllyyy大王', text: '我每个梦的终点，都是敲响你的门铃。' },
+  { id: '谢可的小啾啾', text: '希望全世界的好运和爱都降临给你' },
+  { id: '欣动信号xin', text: '冉冉大声唱，你是最棒的，我会永远爱你' },
+  { id: '薯薯脑袋要发芽', text: '冉儿你很优秀不要退休我爱你🧡' },
+  { id: '茶凉', text: '始于颜值，忠于人品' },
+  { id: 'NocturneNO_9', text: '冉冉永远幸福！永远做明媚的小猫咪！' },
+  { id: 'ZXN', text: '小冉姐眼泪自由～我们会接住你所有情绪' },
+  { id: '麦香鱼_重度依赖', text: '姐姐乘风顺利！你是我的骄傲！' },
+  { id: '小鱼🐟', text: '乘风游戏马上结束，继续陪你打怪升级' },
+  { id: '现.新世界', text: '君自乘风而上，我们恒久相伴，不离不弃。' },
+  { id: '咧咧的小tina', text: '不惧风浪自在绽放，我永远偏爱李小冉' },
+  { id: 'Fluency', text: '姐姐大声唱，你的声音最最好听' },
+  { id: '今天有点闲', text: '因为是李小冉，我们的爱才会被回应' },
+  { id: '什么时候才能改完毕设', text: '冉姐毕业快乐！我们不散场～我们永远在一起' },
+  { id: '巧克力脏脏挞', text: '来吧伴冉飞，多久都不会累' },
+  { id: 'O崽的秘密花园', text: '剧抛脸演员演到银河爆炸！' },
+  { id: '幂冉熙', text: '全力以赴的小冉，终将奔赴光芒万丈的明天' },
+  { id: '脑缠奋', text: '繁花似锦惹人眼\n乘风破浪飒我心' },
+  { id: '卷卷妍', text: '谢谢你来到乘风 未来的路我们一起走' },
+  { id: '呼呼瘦瘦嘘_', text: '在这个夏天能遇到李小冉很幸福我们永远爱你' },
+  { id: '李小冉要开心', text: '2026很幸福的一件事就是喜欢上了你' },
+  { id: '清蒸大虾', text: '这天上地下你李小冉最美！整个宇宙为你闪烁' },
+  { id: 'Aurora', text: '姐姐毕业快乐！谢谢你成为李小冉' },
+  { id: '今天也吃辣鸡翅', text: '辛苦了 感谢你成为李小冉 我们会一直爱你' },
+  { id: '七七', text: '一定要幸福要开心 做自己想做的事' },
+  { id: '松边月_', text: '李小冉我们陪你一起大梦一场' },
+  { id: '现在不是可以相爱嘛', text: '我们的结局不会是告别，不会走，一直在' },
+  { id: '堕落977', text: '舞台上的你真的很美希望还能看到冉唱歌跳舞' },
+  { id: 'Zth', text: '清冷自持，温柔且有力量，李冉全肯定，爱你' },
+  { id: '咿唔-yu', text: '宝宝乘风会结束但我的爱不会，我会一直在' },
+  { id: '今天下雨了嘛_0507', text: '漂亮的你笑起来更好看，姐姐要永远幸福快乐' },
+  { id: '懒懒的天空PHC', text: '姐姐 谢谢你带着便利贴蹦进了我的心' },
+  { id: '吃le别碰我', text: '因为你是李小冉所以我们会一直支持你！' },
+  { id: '離線佬锐仔', text: '人生如梦愿冉宝尽兴,何其有幸陪你梦一场.' },
+  { id: '丶文指指指指指', text: '应无所住，而生其心。一路相伴，携手同行。' },
+  { id: '火锅不能少麻酱', text: '无需汹涌的浪潮，时光会证明细水长流的爱' },
+  { id: '是个大漏漏漏勺', text: '谢谢我能在这个夏天遇到你，最好的你。' },
+  { id: '魂殇_半夏半暖半倾城', text: '2026的夏天谢谢你来到乘风，短暂但美好' },
+  { id: '晚风林烬-离烬', text: '愿我们的爱，先于所有声音抵达你心窝。' },
+  { id: '竹无心jk', text: '冉冉，乘风毕业快乐，爱你的人一直都在' },
+  { id: '你好疯子520521', text: '李小冉值得被世上所有的美好偏爱！' },
+  { id: '夏奇冉_乘风大小姐版', text: '永远唱你想唱的歌 过你想过的生活' },
+  { id: '冉1', text: '嘿 孩子 我超爱你 ( ˘ ³˘)💋' },
+  { id: '小猫萌时候', text: '你的美好善良天真直率都值得我们珍惜爱你' },
+  { id: '李冉全肯定', text: '李小冉全肯定 真的超级超级棒 爱你' },
+  { id: '送你两个小心心', text: '姐姐要开心，我们永远爱你' },
+  { id: 'i33--', text: '李冉你要开心，要自信，加油，我爱你' },
+  { id: '灬love戚浅薇笑灬', text: '独立清醒的大女主未来我们要一起走很久很久' },
+  { id: 'eyes', text: '感谢冉冉让我们认识演员李小冉之外的你' },
+  { id: 'T乙T', text: '爱上你是在繁花你就是你被你的人格魅力吸引' },
+  { id: 'wool', text: '我的限定爱豆冉，继续勇敢做自己的大女主吧' },
+  { id: '入冉坑的香港喵', text: '坚持善良赤诚是勇敢的选择，冉冉继续做自己' },
+  { id: '速食昴派', text: '六年前我就一直喜欢你，冉你一直都超级棒！' },
+  { id: 'yzx', text: '李冉你唱歌真的很好听 往后也要大声唱！' },
+  { id: 'givemefive', text: '希望姐姐多一点快乐少一点敏感' },
+  { id: '拾贰', text: '永远不要贬低自己，要自信多一点点点点点！' },
+  { id: '椰子出现在这里', text: '李小冉 谢谢你陪我度过了高考前最难的时光' },
+  { id: 'hey婕儿', text: '你是冉冉升起的光，美好如冉，冉要开心' },
+  { id: '不要脸de长颈鹿', text: '不要内耗，冉冉在冉丝心中天下第一棒！' },
+  { id: '佼佼遮', text: '被你鲜活的人格魅力折服了' },
+  { id: '薏语', text: '姐姐天天开心，平安健康，一直爱你、陪伴你' },
+  { id: '憨憨的小可爱i', text: '爱你是一件很幸福的事，很高兴遇见你！' },
+  { id: '粉粉菜蛋', text: '你是最强哒最棒哒最亮哒！' },
+  { id: '饭团自来卷-', text: '小冉，我遇到你那么晚。我们能一起是缘分。' },
+  { id: 'plusminus', text: '谢谢你愿意捧着一颗真心走到舞台上～' },
+  { id: '冉冉升起的momo', text: '喜欢不完美的你，慢慢的静静的喜欢你就好了' },
+  { id: 'LD', text: '始于颜值，陷于性格，忠于李小冉的勇敢。' },
+  { id: 'Starry_冉i', text: '小冉姐姐永远幸福快乐，自在发光，我们爱你' },
+  { id: '曠野中拾荒', text: '请自信，请自由，请一直做你自己' },
+  { id: 'ruoqi', text: '姐姐，多做自己喜欢做的事情吧！' },
+  { id: '行远自迩ve', text: '给你我所有的爱❤' },
+  { id: '手抓饼三手抓', text: '希望冉冉现在以后一切都好，很爱很爱你' },
+  { id: '今天也超喜欢草莓', text: '希望你勇敢做自己，相信自己大 VOCAL' },
+  { id: '一颗幸运星25', text: '冉夸夸你梦一场很好听不要自嘲你就是大窝扣' },
+  { id: '徐温早早早早早早早早', text: '李小冉要自信要快乐要健康！你最棒！' },
+  { id: '鱼丸丸不长鱼尾纹', text: '李小冉全肯定 姐姐我们一直一起走下去吧~' },
+  { id: '憨憨若愚', text: '幼稚园的便利贴是你，梦一场发光的也是你。' },
+  { id: '-言柒七-', text: '乘风旅程落幕，愿小冉永远自在做大女主' },
+  { id: '沐沐别吃了', text: '姐姐 蛋挞冷冻更好吃！谢谢你成为李小冉。' },
+  { id: '热心网友涵同學', text: '小冉 永远会有同频的人能接住你的真诚' },
+  { id: 'ocean', text: '希望你永远开心永远幸福永远自由永远热烈。' },
+  { id: 'Zth34', text: '李冉全肯定，你是最棒的，要相信自己，爱你' },
+  { id: 'Gemini_77', text: '真诚又感性的冉冉一直在闪闪发光' },
+  { id: '许奕', text: '姐姐，要永远开心呀，会永远支持你的' },
+  { id: '冉冉而来', text: '愿你始终被真心相待，也永远活得自在从容' },
+  { id: 'vitaminTAP', text: '喜欢真实自由的你，你开心我安心' },
+  { id: '咬一口你的巧克力蛋挞', text: '李小冉你好棒！我们爱你只因你是你，李小冉' },
+  { id: '爱冉冉的小涛涛', text: '你就是舞台上最亮的那颗星，请继续闪耀吧' },
+  { id: '理智荔枝u', text: '谢谢你的出现 我们会一直在你身后陪伴你' },
+  { id: '苍樱拍子0-', text: '我和你永不散' },
+  { id: '圆脸小饺', text: '冉冉小猪 请相信爱你的人会始终站在你身边' },
+  { id: '肆行有易', text: '冉冉，冉丝爱你到天荒地老！' },
+  { id: '木子冉', text: '最最最优秀的李小冉！愿你永远明媚自由！' },
+  { id: 'Celeste', text: '小冉，很幸运遇见你，未来健康幸福' },
+  { id: '龖龘', text: '小冉，历尽千帆，归来仍是少年🐲🐲' },
+  { id: '临摹菩萨笑拈天下', text: '不靠天赋加持，全凭真心与勤勉破局！' },
+  { id: '冉冉前進中', text: '愿你一往无前，愿你面对坎坷的时坚持初心。' },
+  { id: '虚弱的水王', text: '宝宝乘风对你我都只是个开始我想陪你走更远' },
+  { id: 'axolot.9', text: '世界上最纯粹美丽的小冉，好爱你，想见你！' },
+  { id: '小乌鸦', text: '走过的路不荒唐 不遗忘 小冉继续发光吧！' },
+  { id: '泡泡', text: '感谢这个夏天你如一道闪电般出现在我眼里！' },
+  { id: '响彻云霄Ovo', text: '喜欢最真实勇敢的小冉，曲永远不会终。' },
+  { id: '困困小猫eu', text: '姐姐要多肯定自己呀！我们会一直支持你的！' },
+  { id: 'llll4444-', text: '爱你只因为你是你 双向奔赴的爱永远不会散' },
+  { id: '试问怎么可以这样', text: '姐姐请保持本心一直快乐下去吧' },
+  { id: '我也不知道为什么烦躁', text: '何其有幸遇见你，因你而幸福，爱你的全部。' },
+  { id: '舟宝（龙麒齐）', text: '申玉菲认识姐姐，加入组织，未来陪伴是告白' },
+  { id: '爱说废话屁事很多', text: '感谢这个夏天有你的陪伴，会一直爱你的' },
+  { id: '林钟', text: '爱你，因为你是这样好的李小冉' },
+  { id: '小霏鱼_趁早薅到鱼', text: '冉冉你很棒，请一直相信自己吧，我们都在！' },
+  { id: 'Lingsiyu', text: '李小冉你就是大女主所有努力我们都看得到！' },
+  { id: '是小胡鸭_爱姐版', text: '冉冉，希望你永远自由！' },
+  { id: '你的李子', text: '小冉姐姐 你真的超棒 爱你' },
+  { id: '达芬奇机器猫', text: '打破标签勇敢蜕变前路漫漫你永远熠熠生辉。' },
+  { id: '是殺青哦', text: '全世界唱歌最好听跳舞最好看的队长李小冉！' },
+  { id: '绿迪皮皮', text: '下个作品见' },
+  { id: 'YUANN', text: '冉冉姐，祝你开心，自由！' },
+  { id: '娇妻掏钱要六亿', text: '姐姐宝宝永远幸福明媚啦' },
+  { id: '麻辣拌加肘子', text: '姐姐，唯爱明媚坦荡纯粹自信的你，你超棒。' },
+  { id: 'Star_文文Z', text: '毕业快乐！以后要常来找我们玩，我们会想你' },
+  { id: '是小羊咩咩叫吖', text: '谢谢乘风让我看到你有更多的无限可能' },
+  { id: '心选冰可乐', text: '“你唱什么都好听，李小冉！”是我喊的！' },
+  { id: '小米糊糊1_', text: '小冉，我保证你是天使，谢谢你的真心。' },
+  { id: 'neko', text: '爱上李小冉是人之常情' },
+  { id: '小冉牌奥利奥', text: '姐姐毕业快乐 谢谢你成为李小冉 我们爱你' },
+  { id: '瑜_fish_ai', text: '姐姐一定要健康快乐幸福！梦一场很好听！' },
+  { id: 'resren', text: '不必迎合任何人，曲终亦有相逢，祝你自由。' },
+  { id: 'DDDD', text: '岁月沉淀的歌声，最打动人心，胜技巧万千。' },
+  { id: 'joro22', text: '姐，你是最棒的！' },
+  { id: '嚼着星星发呆', text: '冉冉大声唱！曲终人不散，我们还在。爱你！' },
+  { id: 'Phil', text: '你自身的光芒终会刺破风浪，成为美好' },
+  { id: 'Seollmin', text: '感谢这个夏天能与你相遇，世界上无人能及你' },
+  { id: '相拥z', text: '李小冉 请一定要坚信你值得所有的美好和爱' },
+  { id: '星玄路漫', text: '你开心我们安心，要做自由的小猫咪！' },
+  { id: '冉冉升起的星星TOP', text: '小冉，你赤诚坦荡，明媚温暖，伴我渡过低谷' },
+  { id: '常青藤_Z', text: '如果有人否定你 那我加倍肯定你 我爱你' },
+  { id: '喜食甜梨·', text: '你的真心和眼泪我感受到了 喜欢你特别幸福' },
+  { id: '春山', text: '感谢真诚善良的你，现在或未来都陪你走。' },
+  { id: '澈', text: '认识你才理解知世故而不世故历圆滑而弥天真' },
+  { id: '蛋式推拿', text: '冉冉你美好的真心最值得歌颂 永远爱你' },
+  { id: '玉米', text: '我会等愿你一路生花，乘风破浪自由尽兴' },
+  { id: '不樊不樊人', text: '冉冉喜欢你的唯一理由是你就是李小冉啊！' },
+  { id: '紫陌', text: '姐姐，你是惊人的美貌和有趣的灵魂，爱你！' },
+  { id: 'liii煜垚_', text: '你的真诚让我情绪随你起伏。' },
+  { id: '赖在床上听多首歌便上路', text: '冉冉 我要我们在一起😭' },
+  { id: '很想睡觉的小羊驼', text: '冉冉 等到风景看透 我会陪你看细水长流' },
+  { id: '诗心如故-小诗', text: '交很好的朋友 很完美的舞台 为你骄傲自豪' },
+  { id: '小小熊0610', text: '我看见了你的美好，它是如此迷人' },
+  { id: '熬夜ye_', text: '寶寶 任何時候都不要忘了誇誇自己 你超棒' },
+  { id: '阿尔曼德拉科', text: '冉冉升起吧！' },
+  { id: '凤尾虾_0717', text: '名为爱的路 会陪你走到底' },
+  { id: '懒得动', text: '乘风辛苦了，谢谢你来让我有机会认识李小冉' },
+  { id: '边缘糖果化_2025', text: '李小冉要自信，你优秀的值得一切美好' },
+  { id: '迪迪小星球-', text: '彩带漫天飞舞落下你就是你自己的大女主' },
+  { id: 'ilbae', text: '冉冉，我们一起走下去吧！开心！自信！' },
+  { id: '认知叩叩', text: '谢谢你姐姐，被你喜欢和喜欢你都好幸福' },
+  { id: '拉普拉斯', text: '夏令营结束了，未来也一起吧大窝扣' },
+  { id: '小时sv', text: '爱你明媚的笑，爱你少年的心，愿你不虚此行' },
+  { id: 'lullabyyyqx', text: '小冉姐你真的很棒你是我第一个喜欢的女明星' },
+  { id: '她们都叫我溜溜球', text: '来吧伴冉飞，多久都不会累' },
+  { id: '藤原菠萝仔', text: '最感性最真诚最好的园长，要天天开心！' },
+  { id: 'i7', text: '谢谢你的出现 我要一直一直陪着你' },
+  { id: 'BDBB', text: '姐姐乘风之旅好美好棒，永远记得这个夏天' },
+  { id: '爱上李小冉人之常情', text: '你说可以依赖姐姐，其实你也可以依赖我们呐' },
+  { id: '晨风', text: '李小冉，要勇敢做自己，你永远是最棒的！' },
+  { id: '双面拼图', text: '真诚开心肆意美丽地走向未来吧！' },
+  { id: '东风不见', text: '一时爱冉一时爽、一直爱冉一直爽！' },
+  { id: 'Real库克', text: '一路走来辛苦了，谢谢你的坚持，做得好。' },
+  { id: '小野爱洗澡', text: '谢谢乘风破浪的你，带来了夏天的美梦一场' },
+  { id: '一个AnJM', text: '冉冉你值得拥有很多爱！多多跟我们见面~' },
+  { id: '啾啾槌', text: '长生不老 长命百岁 永葆青春 永远开心！' },
+  { id: '木子', text: '一公到五公，我冉一直乘风！梦一场真好听！' },
+  { id: 'Ryujzzzin', text: '小冉你最棒，你是我的好榜样和大vocal' },
+  { id: '心之恋雨', text: '姐姐我永远爱你哇' },
+  { id: 'RB', text: '你要开开心心的 我们会一直在你身边支持你' },
+  { id: '可爱猪咪饲养家', text: '不要听打压的话，你就是最优秀的值得被爱的' },
+  { id: '璃月Emily', text: '毕业快乐，愿你永远明媚自由，做最好的自己' },
+  { id: 'XF-FAY', text: '希望看到小冉更多作品，健康完赛，顺遂无忧' },
+  { id: '鲨鲨为爱充电', text: '谢谢你来到乘风，让我们有了这段美好的回忆' },
+  { id: '想养一只小兔子111', text: '很高兴认识你。你是真诚自由又有趣的鸢尾花' },
+  { id: 'z——赤道情书', text: '小冉姐姐你超棒的！祝福姐姐的整个人生！' },
+  { id: '鱼鱼猫', text: '小冉呀你每次都在进步 以后会一直陪着你呀' },
+  { id: '_Pekk', text: '最好的小冉，愿你永远自信，乘风而上' },
+  { id: '雪高高高yo', text: '李小冉，等下一个绿灯亮起，我们依旧并肩！' },
+  { id: 'JAR', text: '做自己的大女主 李小冉最棒 冉迷爱你' },
+  { id: 'jusT__Tomato', text: '自信 健康 幸福 快乐 天天开心' },
+  { id: '邢愫在做孽', text: '宝贝姐姐乘风而来，尽兴而归' },
+  { id: '浮起需几升氢h', text: '冉冉山水万程皆好运 夏天退场我们还在场' },
+  { id: '涩涩流光相皎洁', text: '姐姐你美炸了！！！' },
+  { id: '我不是甲钴胺', text: '每一天都希望你明天会更幸福 永远明媚自在' },
+  { id: '冉冉向前冲', text: '姐姐梦一场你唱的超好听❤️每个舞台都好棒' },
+  { id: '洛影成山', text: '十年相伴，不畏远近；向前有路，回首有灯。' },
+  { id: '巴拉拉啦啦啦', text: '李小冉，不要为了别人改变自己，永远快乐' },
+  { id: '安安兜', text: '从尹静婉开始相遇已经16年了，会一直陪你' },
+  { id: 'Elena', text: '冉冉姐是最棒哒 你是无限可能！' },
+  { id: '不要欺负葫芦', text: '李小冉谢谢你来，让我看到如此明媚的大女主' },
+  { id: 'JunAn君安_', text: '姐姐，谢谢你来到乘风，这个夏天因你而圆满' },
+  { id: '小鲨鱼', text: '小冉姐，要永远做自己的大女主！' },
+  { id: '- CKIRRY-', text: '感恩这个夏天我们相遇 我会永远爱你' },
+  { id: '第六个小夜子', text: '小冉姐姐，希望你可以一直明媚下去，做自己' },
+  { id: 'SUNG', text: '願你一直肆意張揚，不負此行！' },
+  { id: 'pluvile_', text: '冉冉，你是最好的大窝扣，我们一起明媚🩵' },
+  { id: '于胖胖_好运', text: '事业长青，身体健康，心情明媚，岁岁安然' },
+  { id: '啵一口月亮叭', text: '冉冉天天开心，谁了解你都会爱你，你最珍贵' },
+  { id: '璀璨的邂逅', text: '初见惊艳，了解后倾心。愿你永远做自己❤️' },
+  { id: '淤于雨誉', text: '谢谢你成为李小冉谢谢你一直以来的坚持' },
+  { id: '晚晚子呢', text: '冉冉乘风快乐！这是属于我们的梦一场！' },
+  { id: '花儿生了什么树了_', text: '冉 愿你所遇皆温柔 前路皆坦途。' },
+  { id: '小兔猪猪挞rccH', text: '冉冉天天开心，永远自信明媚做自己的大女主' },
+  { id: 'Baobao76', text: '爱你的努力善良义气与纯粹，愿你自在随心' },
+  { id: '魔力小精灵', text: '愿你永远自由、永远快乐，我永远爱你' },
+  { id: '旺仔不哈哈HA', text: '真诚而又善良的演员李小冉请自由的走下去吧' },
+  { id: '十七呐ovo', text: '能看到你在舞台上发光是我的幸福' },
+  { id: '木子金帛zhu', text: '向上天发誓你是天使！不要怀疑自己你超棒！' },
+  { id: '冉冉要出发', text: '要加倍对自己好，别这么会照顾人' },
+  { id: '伴冉冉飞不会累', text: '爱你不是梦一场，会一直在冉身后' },
+  { id: 'wawantu', text: '姐姐总决赛加油！演出顺利！' },
+  { id: 'mi喜', text: '最棒的小冉姐！继续坚定做自己吧～你很棒！' },
+  { id: '清凉油公主', text: '姐姐请不要被外界的声音左右 一直做自己吧' },
+  { id: 'DDD', text: '任世界喧嚣，你还是你，真诚而美好' },
+  { id: '汪汪汪汪汪汪汪汪汪汪喵汪汪汪', text: '因为剧照开始去动森捡树枝，想看更多作品！' },
+  { id: '三月蘼', text: '姐姐你是最棒的希望你可以一直开心快乐健康' },
+  { id: '三明治', text: '你真的真的很优秀，爱你冉大女主！' },
+  { id: '白鸽衔百合', text: '永远大胆做自己,我们永远爱你' },
+  { id: '狗头军师之我不是老6', text: '纵有狂风拔地起，你亦乘风破千里‌' },
+  { id: 'momo（求隐身）', text: '愿你开心 愿你自信' },
+  { id: 'king倍', text: '李冉要有自信 唱和跳俱佳' },
+  { id: 'Joan', text: '爱你荧幕上的千姿百态爱你舞台上的星光闪耀' },
+  { id: '偏爱小茂密', text: '祝冉冉永远有真诚而温暖的笑容，天天开心。' },
+  { id: '小玖', text: '心有至诚至坚，秋江风过明月，月仙冉冉升' },
+  { id: '护冉前行', text: '祝冉冉平安顺遂，向风而行，做自己的大女主' },
+  { id: 'ee', text: '冉冉升起，阳光明媚！' },
+  { id: '凝若明光', text: '冉冉带着爱和肯定一直幸福地走下去吧！' },
+  { id: 'sp', text: '再次认识了荧幕外最真诚、鲜活、纯粹的园长' },
+  { id: '--小呆比--', text: '默默关注你很久，不常在微博留言，但超爱你' },
+  { id: 'Yanntung', text: '多亏了你我度过了非常幸福难忘的三个月' },
+  { id: '东方howey', text: '唱跳俱佳李小冉，不要管旁人的声音！' },
+  { id: '初一不是十五喵🐈', text: '希望很会爱的冉可以永远自由坦荡、野蛮快乐' },
+  { id: 'Roka', text: '姐姐依旧做明媚的女子吧，随性开心，爱你。' },
+  { id: '攒一口袋星星', text: '要一直开心 你值得最好的！毕业快乐' },
+  { id: 'wxid_3ao8qpr8p0zq22', text: '冉姐讲话不要献祭自己会让有心人利用贬低她' },
+  { id: '心灵冬天飘落的雪', text: '对演员最好的祝福是常青不朽，愿你星途璀璨' },
+  { id: '称心如意吖', text: '李小冉你特别棒 要继续做闪闪发光的大女主' },
+  { id: '江声', text: '冉咪！真的很喜欢你在舞台闪闪发光的模样！' },
+  { id: '家冉要当C', text: '冉冉，你很好很优秀，一定要对自己有信心。' },
+  { id: '苏白张', text: '永远支持李小冉！永远喜欢李小冉！' },
+  { id: '冉冉的巧克力蛋挞', text: '感谢你的勇敢来到乘风的舞台，祝你永远顺遂' },
+  { id: '红气球', text: '愿你永远勇敢，永远热忱，真实自有万钧之力' },
+  { id: 'Ustinianaaa', text: '谢谢你来乘风，很高兴认识鲜活的你！' },
+  { id: '李迪', text: '你是生活中的大女主，自带光芒的微笑女神' },
+  { id: 'Sponge', text: '要知道，你的身后有很多很多只爱你的冉迷' },
+  { id: '我在梦里抱着猫', text: '不完美也没关系，一步步来就好' },
+  { id: '鱼饼', text: '见你惊鸿一面，撞出如梦一场的花火' },
+  { id: '冉白月光', text: '初舞台对你一眼万年，喜欢你的花火梦一场！' },
+  { id: '安仔', text: '永远年轻，永远热血，永远热泪' },
+  { id: '柒只墨玦', text: '祝小冉赤诚如曜，自由无羁～' },
+  { id: '整杯盐水', text: '未来都一起走吧，永远保护你。' },
+  { id: '陪家冉久久', text: '了不起的冉冉，请一直健康幸福快乐吧❤️' },
+  { id: '和冉共食一个唐僧', text: '爱你初心如雪，敬你岁月从容' },
+  { id: '我叫阿拉不是撕家', text: '希望你每天开心，保持自信，永远做自己❤️' },
+  { id: '小猫语音条', text: '你很优秀很棒！勇敢自信向前冲，我一直在' },
+  { id: '不喝奶茶_', text: '乘风的夏天结束了，但你是我未完待续的夏天' },
+  { id: '壶女士', text: '爱豆李小冉全肯定，演员李小冉全肯定！' },
+  { id: '小丸子子是慢', text: '新加坡09粉丝 乘风相逢 永远为小冉撑腰' },
+  { id: '要稳赢钱的hhh', text: '亲爱的小冉，我只爱你，只做自己的大女主吧' },
+  { id: '浩瀚星辰只为一冉', text: '梦一场特别好听，也这几天都是循环播放' },
+  { id: '出在无限个吻之上', text: '喜欢你真的好幸福，我许愿全世界都对你好' }
+];
+
+        // ===== 洗牌 =====
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // ===== 防XSS =====
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ===== 渲染留言 =====
+        const board = document.getElementById('msgBoard');
+        const shuffled = shuffleArray([...messages]);
+
+        if (shuffled.length === 0) {
+            board.innerHTML = '<div class="msg-empty">还没有留言，来写下第一句吧 ✨</div>';
+        } else {
+            let html = '';
+            shuffled.forEach((msg) => {
+                html += `
+                            <div class="msg-item">
+                                <div class="msg-id">${escapeHtml(msg.id)}</div>
+                                <div class="msg-text">${escapeHtml(msg.text)}</div>
+                            </div>
+                        `;
+            });
+            board.innerHTML = html;
+        }
+
+    </script>
+
+</body>
+</html>
