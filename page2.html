@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>乘风 · 练习室</title>
     <style>
         /* ===== 全局风格（深色暖调复古梦幻） ===== */
@@ -156,8 +156,6 @@
             margin-top: 2px;
         }
 
-        /* 不再使用 collected 高亮，完全交给玩家推断 */
-
         .question {
             font-size: 16px;
             color: #e8d9cd;
@@ -224,6 +222,39 @@
         .btn:active {
             transform: translateY(4px);
             box-shadow: 0 2px 0 #4d342b;
+        }
+
+        /* ===== 输入框下方提示区域 ===== */
+        .hint-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #c9b09d;
+            text-align: center;
+            min-height: 44px;
+            line-height: 1.5;
+            padding: 6px 12px;
+            background: rgba(61, 44, 35, 0.35);
+            border-radius: 16px;
+            border: 1px solid rgba(95, 67, 54, 0.25);
+            transition: all 0.35s ease;
+            word-break: break-word;
+        }
+
+        .hint-text .hint-icon {
+            margin-right: 6px;
+        }
+
+        .hint-text.error-1 {
+            border-color: #b8875e;
+            background: rgba(184, 135, 94, 0.12);
+            color: #f0dcc8;
+        }
+
+        .hint-text.error-2 {
+            border-color: #d4a373;
+            background: rgba(212, 163, 115, 0.15);
+            color: #f5e6d8;
+            font-weight: 500;
         }
 
         .footer {
@@ -301,8 +332,12 @@
         }
 
         @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
         }
 
         .image-modal img {
@@ -374,6 +409,11 @@
                 padding: 10px 20px;
                 font-size: 14px;
             }
+            .hint-text {
+                font-size: 13px;
+                min-height: 40px;
+                padding: 5px 10px;
+            }
         }
 
         @media (max-width: 380px) {
@@ -390,6 +430,10 @@
             .scene-item .label {
                 font-size: 11px;
             }
+            .hint-text {
+                font-size: 12px;
+                min-height: 36px;
+            }
         }
     </style>
 </head>
@@ -400,7 +444,7 @@
 
     <!-- 图片模态框 -->
     <div class="image-modal" id="imageModal" onclick="closeModal()">
-        <img id="modalImage" src="" alt="场景线索" onclick="event.stopPropagation();">
+        <img id="modalImage" src="" alt="场景线索" onclick="event.stopPropagation();" />
     </div>
 
     <div class="page" id="page-studio">
@@ -413,7 +457,7 @@
 
         <!-- 背景图 -->
         <div class="bg-placeholder" id="bg-placeholder">
-            <img src="training_room.jpg" alt="练习室背景">
+            <img src="training_room.jpg" alt="练习室背景" />
         </div>
 
         <!-- 三个交互卡片 -->
@@ -422,7 +466,7 @@
             <div class="scene-item" id="sofa-item" onclick="interactSofa()">
                 <span class="icon">🛋️</span>
                 <div class="label">沙发区域</div>
-                <div class="sub">点击查看图片</div>
+                <div class="sub">点击查看手册</div>
             </div>
             <!-- 训练表 → schedule.png -->
             <div class="scene-item" id="schedule-item" onclick="interactSchedule()">
@@ -434,7 +478,7 @@
             <div class="scene-item" id="keyboard-item" onclick="interactKeyboard()">
                 <span class="icon">🎹</span>
                 <div class="label">电子琴</div>
-                <div class="sub">点击查看图片</div>
+                <div class="sub">声乐课设备</div>
             </div>
         </div>
 
@@ -446,8 +490,13 @@
         <!-- 答题框 -->
         <div class="input-area">
             <div class="input-group">
-                <input type="text" id="keyword-input" placeholder="请输入答案…" autocomplete="off">
+                <input type="text" id="keyword-input" placeholder="请输入答案…" autocomplete="off" />
                 <button class="btn" onclick="submitKeyword()">➜</button>
+            </div>
+
+            <!-- 输入框下方提示区域 -->
+            <div id="hint-text" class="hint-text">
+                <span class="hint-icon">💡</span> 查看场景中的线索，组合成答案
             </div>
         </div>
 
@@ -466,20 +515,24 @@
 
     <script>
         // ================================================================
-        //  配置：三张图片的 URL（替换为实际图片文件）
-        //  图一（沙发区域）：manual.jpg
-        //  图二（训练表）：schedule.jpg
-        //  图三（电子琴）：qin.jpg
+        //  配置：三张图片的 URL（请替换为实际图片文件）
         // ================================================================
         const IMAGE_SOFA = 'manual.jpg';
         const IMAGE_SCHEDULE = 'schedule.jpg';
         const IMAGE_KEYBOARD = 'qin.jpg';
 
         // ================================================================
-        //  游戏状态（内部记录，不向玩家展示具体字母）
+        //  游戏状态
         // ================================================================
-        let hasDA = false;
-        let hasAN = false;
+        let hasDA = false;   // 是否查看过电子琴（提供 DA）
+        let hasAN = false;   // 是否查看过训练表（提供 AN）
+        let errorCount = 0;  // 仅在线索完整后统计错误次数
+
+        // ================================================================
+        //  DOM 引用
+        // ================================================================
+        const hintEl = document.getElementById('hint-text');
+        const inputEl = document.getElementById('keyword-input');
 
         // ================================================================
         //  Toast
@@ -520,11 +573,11 @@
         });
 
         // ================================================================
-        //  交互函数（只提示“已查看”，不透露 AN/DA）
+        //  交互函数（收集线索）
         // ================================================================
         function interactSofa() {
             showImage(IMAGE_SOFA);
-            // 沙发区域本身不提供 AN/DA 线索，仅展示图片
+            // 沙发区域仅展示图片，不提供 AN/DA
         }
 
         function interactSchedule() {
@@ -548,43 +601,85 @@
         }
 
         // ================================================================
-        //  提交关键词
+        //  更新提示文字（根据错误次数）
+        // ================================================================
+        function updateHint() {
+            hintEl.classList.remove('error-1', 'error-2');
+
+            if (errorCount === 0) {
+                hintEl.innerHTML = '<span class="hint-icon">💡</span> 查看场景中的线索，组合成答案';
+            } else if (errorCount === 1) {
+                hintEl.classList.add('error-1');
+                hintEl.innerHTML =
+                    '💡 四位英文字母，前两位由声乐课课程时长得到，后两位由舞蹈课开始和结束分钟得到';
+            } else {
+                // errorCount >= 2
+                hintEl.classList.add('error-2');
+                hintEl.innerHTML = '💡 请输入「答案」！！！';
+            }
+        }
+
+        // ================================================================
+        //  提交关键词（核心逻辑）
         // ================================================================
         function submitKeyword() {
-            const input = document.getElementById('keyword-input');
-            const val = input.value.trim().toLowerCase();
+            const val = inputEl.value.trim().toLowerCase();
+
+            // 1. 空输入直接提示并返回（不改变提示）
             if (!val) {
                 showToast('✍️ 请输入答案');
                 return;
             }
 
+            // 2. 检查线索是否完整（必须同时拥有 DA 和 AN）
+            if (!hasDA || !hasAN) {
+                showToast('🔍 线索还不完整，请查看所有场景');
+                inputEl.value = '';
+                inputEl.focus();
+                return;   // 不改变提示文本，不增加错误计数
+            }
+
+            // 3. 线索完整后，判断是否正确
             if (val === '答案' || val === 'daan' || val === 'da an') {
-                if (!hasDA || !hasAN) {
-                    // 不点名具体场景，让玩家自己回想哪里漏看了
-                    showToast('🔍 线索还不完整，请查看所有场景');
-                    return;
-                }
+                // 正确！过关
                 showToast('✅ 正确！前往走廊…');
                 setTimeout(() => {
                     window.location.href = 'page3.html';
                 }, 500);
-            } else {
-                showToast('❌ 关键词不对，再想想…');
+                return;
             }
+
+            // 4. 错误答案（线索完整情况下）
+            errorCount++;
+            updateHint();
+
+            if (errorCount === 1) {
+                showToast('❌ 再想想… 看看提示 👆');
+            } else if (errorCount === 2) {
+                showToast('❌ 再想想… 答案就在提示里 ✨');
+            } else {
+                showToast('❌ 再想想…');
+            }
+
+            // 清空输入框并保持焦点
+            inputEl.value = '';
+            inputEl.focus();
         }
 
         // ================================================================
         //  回车提交
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('keyword-input').addEventListener('keydown', function(e) {
+            inputEl.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     submitKeyword();
                 }
             });
-        });
 
+            // 初始化提示
+            updateHint();
+        });
     </script>
 
 </body>
