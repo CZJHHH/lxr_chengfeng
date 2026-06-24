@@ -457,7 +457,7 @@
         <div class="game-section">
             <div class="game-title">
                 <span>🦕 跳跃闯关</span>
-                <span class="status" id="gameStatus">点击「开始」出发</span>
+                <span class="status" id="gameStatus">点击「🚀 开始」出发</span>
             </div>
             <canvas id="gameCanvas" width="800" height="400"></canvas>
             <div class="game-controls">
@@ -534,7 +534,7 @@
             // ---- 配置 ----
             const NUM_OBSTACLES = 10;
             const GRAVITY = 0.6;
-            const JUMP_SPEED = -12;
+            const JUMP_SPEED = -15; // 调高跳跃速度，跳得更高
             const OBSTACLE_SPEED = 4.6;
             const GROUND_RATIO = 0.80;
 
@@ -551,12 +551,12 @@
             // ---- 成功解锁标记（一旦为 true，永久保留成功UI） ----
             let successUnlocked = false;
 
-            // ---- 角色 ----
+            // ---- 角色（尺寸放大：80x84） ----
             const role = {
                 x: 80,
                 y: 0,
-                width: 44,
-                height: 48,
+                width: 80,
+                height: 84,
                 vy: 0,
                 isGrounded: true,
                 get left() { return this.x + 6; },
@@ -711,7 +711,7 @@
                 btnGameStart.textContent = '🚀 开始';
                 btnGameStart.disabled = false;
                 btnGameStart.className = 'btn-game';
-                gameStatus.textContent = '点击「开始」出发';
+                gameStatus.textContent = '点击「🚀 开始」出发';
                 gameHint.textContent = '👆 点击画面 / 空格跳跃';
                 draw();
             }
@@ -732,7 +732,7 @@
                 draw();
             }
 
-            // ---- 生成障碍物 ----
+            // ---- 生成障碍物（尺寸放大：64x68） ----
             function spawnObstacle() {
                 if (successPlaced) return;
                 if (totalObstaclesSpawned >= NUM_OBSTACLES) {
@@ -751,8 +751,8 @@
                     return;
                 }
                 const type = Math.floor(Math.random() * 4) + 1;
-                const ow = 40,
-                    oh = 44;
+                const ow = 64,
+                    oh = 68;
                 obstacles.push({
                     x: W + 10,
                     y: GROUND_Y - oh,
@@ -818,7 +818,6 @@
                             btnGameStart.className = 'btn-game btn-danger';
                             gameStatus.textContent = '💥 撞到啦！';
                             gameHint.textContent = '💔 再试一次吧';
-                            // 失败时不隐藏成功UI（如果已解锁则保留）
                             return;
                         }
                     } else {
@@ -977,7 +976,7 @@
                     ctx.font = 'bold 20px "Segoe UI", sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('🖱️ 点击「开始」出发', W / 2, H / 2 + 2);
+                    ctx.fillText('🖱️ 点击「🚀 开始」出发', W / 2, H / 2 + 2);
                 } else if (gameState === STATE.FAILED) {
                     ctx.fillStyle = 'rgba(200,0,0,0.6)';
                     ctx.beginPath();
@@ -1030,12 +1029,7 @@
                     return;
                 }
                 if (text === '🔄 再来一次') {
-                    // 重置游戏到 IDLE 状态（保留成功UI如果已解锁）
                     resetGame();
-                    // 如果成功已解锁，按钮文字变为 "🚀 开始"，等待玩家点击
-                    // 如果未解锁，按钮文字也是 "🚀 开始"
-                    // 但 resetGame 已经设置了按钮文字为 "🚀 开始"
-                    // 所以不需要额外操作
                 }
             });
 
@@ -1053,10 +1047,9 @@
                 btnGameStart.textContent = '🚀 开始';
                 btnGameStart.disabled = false;
                 btnGameStart.className = 'btn-game';
-                // 确保成功UI隐藏（初始状态）
                 successUnlocked = false;
                 hideSuccessUI();
-                gameStatus.textContent = '点击「开始」出发';
+                gameStatus.textContent = '点击「🚀 开始」出发';
                 gameHint.textContent = '👆 点击画面 / 空格跳跃';
                 draw();
                 gameLoop();
