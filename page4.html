@@ -535,7 +535,7 @@
             const NUM_OBSTACLES = 10;
             const GRAVITY = 0.6;
             const JUMP_SPEED = -15; // 调高跳跃速度，跳得更高
-            const OBSTACLE_SPEED = 4.6;
+            const OBSTACLE_SPEED = 4.3;
             const GROUND_RATIO = 0.80;
 
             const W = 800,
@@ -732,7 +732,7 @@
                 draw();
             }
 
-            // ---- 生成障碍物（尺寸放大：64x68） ----
+            // ---- 生成障碍物（尺寸放大：54x58） ----
             function spawnObstacle() {
                 if (successPlaced) return;
                 if (totalObstaclesSpawned >= NUM_OBSTACLES) {
@@ -751,8 +751,8 @@
                     return;
                 }
                 const type = Math.floor(Math.random() * 4) + 1;
-                const ow = 64,
-                    oh = 68;
+                const ow = 54,
+                    oh = 58;
                 obstacles.push({
                     x: W + 10,
                     y: GROUND_Y - oh,
