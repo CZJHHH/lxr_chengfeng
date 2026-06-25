@@ -495,6 +495,7 @@
         //  1. 逐行显示文本（间隔 600ms）
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
+            // ---------- 逐行显示文本 ----------
             const lines = document.querySelectorAll('.line');
             const btnGoto = document.getElementById('btnGoto');
             const btnBack = document.getElementById('btnBack');
@@ -521,34 +522,31 @@
 
             setTimeout(showNextLine, 300);
 
-            // ================================================================
-            //  2. 跳跃游戏逻辑（图片加载方式与 jump.html 一致）
-            // ================================================================
-
+            // ---------- 跳跃游戏（基于delta time） ----------
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
             const gameStatus = document.getElementById('gameStatus');
             const gameHint = document.getElementById('gameHint');
             const gameMessage = document.getElementById('gameMessage');
 
-            // ---- 配置 ----
+            // ---- 配置（数值为 60fps 下的基准值） ----
             const NUM_OBSTACLES = 10;
-            const GRAVITY = 0.6;
-            const JUMP_SPEED = -15; // 调高跳跃速度，跳得更高
-            const OBSTACLE_SPEED = 4.3;
+            const GRAVITY = 0.6;          // 像素/帧² → 转换为 像素/秒² 后乘以delta²
+            const JUMP_SPEED = -15;        // 像素/帧 → 转换为 像素/秒 后乘以delta
+            const OBSTACLE_SPEED = 4;    // 像素/帧 → 乘以delta
             const GROUND_RATIO = 0.80;
 
             const W = 800,
                 H = 400;
             const GROUND_Y = H * GROUND_RATIO;
+            const TARGET_FPS = 60;
+            // 每帧基准时间 = 1000/60 ≈ 16.67ms
 
             // ---- 状态 ----
             const STATE = { IDLE: 'idle', RUNNING: 'running', FAILED: 'failed', SUCCESS: 'success' };
             let gameState = STATE.IDLE;
             let score = 0;
             let totalObstaclesSpawned = 0;
-
-            // ---- 成功解锁标记（一旦为 true，永久保留成功UI） ----
             let successUnlocked = false;
 
             // ---- 角色（尺寸放大：80x84） ----
@@ -568,10 +566,11 @@
 
             let obstacles = [];
             let successPlaced = false;
-            let frameCounter = 0;
-            const SPAWN_INTERVAL = 70;
+            // 增大障碍物生成间隔，给玩家更多反应时间（原来 700ms）
+            const SPAWN_INTERVAL_MS = 1500;  // 改为 1500ms
+            let spawnTimer = 0;
 
-            // ---- 图片对象 ----
+            // ---- 图片加载 ----
             const images = {
                 background: null,
                 role: null,
@@ -581,7 +580,6 @@
                 obstacle4: null,
                 success: null,
             };
-            let imagesLoaded = 0;
             let allLoaded = false;
 
             // ---- 占位生成函数（用于onerror回退） ----
@@ -700,7 +698,7 @@
                 role.isGrounded = true;
                 obstacles = [];
                 successPlaced = false;
-                frameCounter = 0;
+                spawnTimer = 0;
                 score = 0;
                 totalObstaclesSpawned = 0;
 
@@ -728,11 +726,12 @@
                 btnGameStart.className = 'btn-game';
                 gameStatus.textContent = '🏃 闯关中...';
                 gameHint.textContent = '👆 跳跃躲避障碍物';
+                // 初始生成一个障碍物
                 spawnObstacle();
                 draw();
             }
 
-            // ---- 生成障碍物（尺寸放大：54x58） ----
+            // ---- 生成障碍物（基于时间） ----
             function spawnObstacle() {
                 if (successPlaced) return;
                 if (totalObstaclesSpawned >= NUM_OBSTACLES) {
@@ -769,27 +768,28 @@
             function jump() {
                 if (gameState !== STATE.RUNNING) return;
                 if (!role.isGrounded) return;
-                role.vy = JUMP_SPEED;
+                role.vy = JUMP_SPEED; // 初始速度（像素/帧），将在update中乘以delta
                 role.isGrounded = false;
             }
 
-            // ---- 更新 ----
-            function update() {
+            // ---- 更新（接收 delta 时间因子） ----
+            // delta = 实际间隔时间 / (1000/60)，即相对于60fps的比例
+            function update(delta) {
                 if (gameState !== STATE.RUNNING) return;
 
-                // 重力
-                role.vy += GRAVITY;
-                role.y += role.vy;
+                // 1. 物理（重力、位置）
+                role.vy += GRAVITY * delta;
+                role.y += role.vy * delta;
                 if (role.y >= ROLE_INIT_Y) {
                     role.y = ROLE_INIT_Y;
                     role.vy = 0;
                     role.isGrounded = true;
                 }
 
-                // 更新障碍物
+                // 2. 障碍物移动 & 碰撞检测
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     const ob = obstacles[i];
-                    ob.x -= OBSTACLE_SPEED;
+                    ob.x -= OBSTACLE_SPEED * delta;
 
                     if (!ob.isSuccess && !ob.passed) {
                         if (ob.x + ob.width < role.x) {
@@ -842,11 +842,11 @@
                     }
                 }
 
-                // 生成新障碍物
+                // 3. 生成障碍物（基于时间累加）
                 if (!successPlaced) {
-                    frameCounter++;
-                    if (frameCounter >= SPAWN_INTERVAL) {
-                        frameCounter = 0;
+                    spawnTimer += delta * (1000 / 60); // 转换为毫秒累加
+                    if (spawnTimer >= SPAWN_INTERVAL_MS) {
+                        spawnTimer = 0;
                         const activeCount = obstacles.filter(o => !o.isSuccess).length;
                         if (activeCount < 2) {
                             spawnObstacle();
@@ -1005,9 +1005,22 @@
                 }
             }
 
-            // ---- 游戏循环 ----
-            function gameLoop() {
-                update();
+            // ---- 游戏循环（核心：计算delta） ----
+            let lastTimestamp = 0;
+
+            function gameLoop(timestamp) {
+                if (!lastTimestamp) {
+                    lastTimestamp = timestamp;
+                    requestAnimationFrame(gameLoop);
+                    return;
+                }
+                // 计算实际时间差（毫秒），并限制最大步长（避免切页后跳帧）
+                const rawDelta = Math.min(timestamp - lastTimestamp, 50); // 最大50ms
+                lastTimestamp = timestamp;
+                // 转换为相对于 60fps 的因子（1 表示 16.667ms）
+                const delta = rawDelta / (1000 / TARGET_FPS);
+
+                update(delta);
                 draw();
                 requestAnimationFrame(gameLoop);
             }
@@ -1051,8 +1064,10 @@
                 hideSuccessUI();
                 gameStatus.textContent = '点击「🚀 开始」出发';
                 gameHint.textContent = '👆 点击画面 / 空格跳跃';
+                spawnTimer = 0;
                 draw();
-                gameLoop();
+                // 启动循环
+                requestAnimationFrame(gameLoop);
             }
 
             // ---- 加载图片并启动 ----
@@ -1060,7 +1075,7 @@
                 init();
             });
 
-            // 超时兜底（4秒后无论是否加载完成都启动）
+            // 超时兜底
             setTimeout(() => {
                 if (!allLoaded) {
                     const names = ['background', 'role', 'obstacle1', 'obstacle2', 'obstacle3', 'obstacle4', 'success'];
